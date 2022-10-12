@@ -8,6 +8,7 @@ import android.os.Binder
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Telephony
+import android.telephony.SmsManager
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -79,6 +80,17 @@ class MainActivity : AppCompatActivity() {
         smsrecevier = smsboradcastrecevier()
         registerReceiver(smsrecevier, IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION))
         smsrecevier.listner = ListnerImplement()
+    }
+    fun sendsms(sPhoneNo: String?,sMsg: String?){
+        if(!checkRequestPermission()){
+            return
+            //toast msg
+        }
+        val smsmanager=SmsManager.getDefault()
+        if(smsmanager!=null){
+            smsmanager.sendTextMessage(sPhoneNo,null,sMsg,null,null)
+            //toast msg for ack meg sent
+        }
     }
 
     inner class ListnerImplement : smsboradcastrecevier.Lister {
