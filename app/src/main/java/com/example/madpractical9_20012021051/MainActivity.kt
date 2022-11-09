@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Binder
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Telephony
@@ -71,31 +70,46 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binder = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binder.root)
-        setContentView(R.layout.activity_main)
         al = ArrayList()
         lv = binder.listview1
         if (checkRequestPermission()) {
             loadSMSInbox()
+        } else {
+            requestSMSPermission()
         }
         smsrecevier = smsboradcastrecevier()
         registerReceiver(smsrecevier, IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION))
         smsrecevier.listner = ListnerImplement()
+        binder.sendButton.setOnClickListener {
+            val phone = binder.phoneno.text.toString()
+            val msg = binder.message.text.toString()
+            sendsms(phone,msg)
+            val builder: androidx.appcompat.app.AlertDialog.Builder =
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+            builder.setTitle("Sent SMS")
+            builder.setMessage("SMS is sent.\nPhone No : $phone \n\n Message : $msg")
+            builder.setCancelable(true)
+            builder.setPositiveButton("OK", null);
+            builder.show()
+        }
     }
-    fun sendsms(sPhoneNo: String?,sMsg: String?){
-        if(!checkRequestPermission()){
+    fun sendsms(sPhoneNo: String?, sMsg: String?) {
+        if (!checkRequestPermission()) {
             return
             //toast msg
+        } else {
+            requestSMSPermission()
         }
-        val smsmanager=SmsManager.getDefault()
-        if(smsmanager!=null){
-            smsmanager.sendTextMessage(sPhoneNo,null,sMsg,null,null)
+        val smsmanager = SmsManager.getDefault()
+        if (smsmanager != null) {
+            smsmanager.sendTextMessage(sPhoneNo, null, sMsg, null, null)
             //toast msg for ack meg sent
         }
-    }
 
-    inner class ListnerImplement : smsboradcastrecevier.Lister {
+    }
+    inner class ListnerImplement: smsboradcastrecevier.Lister {
         override fun onTextReceived(sPhoneNo: String?, sMsg: String?) {
-            val builder=AlertDialog.Builder(this@MainActivity)
+            val builder = AlertDialog.Builder(this@MainActivity)
             builder.setTitle("new sms recevied")
             builder.setMessage("$sPhoneNo\n$sMsg")
             builder.setCancelable(true)
@@ -104,11 +118,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-
     override fun onDestroy() {
 
         super.onDestroy()
         unregisterReceiver(smsrecevier)
     }
-
 }
